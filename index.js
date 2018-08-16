@@ -15,96 +15,159 @@ mongodb.MongoClient.connect(url, { useNewUrlParser: true },function (err, client
     emit("onDatabaseConnect", dbName);
 });
 
-exports("isConnected", () => !!db);
+function checkDatabaseReady() {
+    if (!db) {
+        console.log(`[MongoDB][ERROR] Database is not connected.`);
+        return false;
+    }
+    if (!collection) {
+        console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
+        return false;
+    }
+    return true;
+}
 
+function checkParams(params) {
+    return params !== null && typeof params === 'object';
+}
+
+/* MongoDB methods wrappers */
+
+function dbInsert(params, callback) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.insert: Invalid params object.`);
+
+    let documents = params.documents;
+    if (!documents || !Array.isArray(documents))
+        return console.log(`[MongoDB][ERROR] exports.insert: Invalid 'params.documents' value. Expected object or array of objects.`);
+
+    const options = utils.safeObjectArgument(params.options);
+
+    collection.insertMany(documents, options, (err, result) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.insert: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        }
+        let arrayOfIds = [];
+        // Convert object to an array
+        for (let key in result.insertedIds) {
+            if (result.insertedIds.hasOwnProperty(key)) {
+                arrayOfIds[parseInt(key)] = result.insertedIds[key].toString();
+            }
+        }
+        utils.safeCallback(callback, true, result.insertedCount, arrayOfIds);
+    });
+    process._tickCallback();
+}
+
+function dbFind(params, callback) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.find: Invalid params object.`);
+
+    const query = utils.safeObjectArgument(params.query);
+    const options = utils.safeObjectArgument(params.options);
+
+    let cursor = collection.find(query, options);
+    if (params.limit) cursor = cursor.limit(params.limit);
+    cursor.toArray((err, documents) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.find: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        };
+        utils.safeCallback(callback, true, utils.exportDocuments(documents));
+    });
+    process._tickCallback();
+}
+
+function dbUpdate(params, callback, isUpdateOne) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.update: Invalid params object.`);
+
+    query = utils.safeObjectArgument(params.query);
+    update = utils.safeObjectArgument(params.update);
+    options = utils.safeObjectArgument(params.options);
+
+    const cb = (err, res) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.update: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        }
+        utils.safeCallback(callback, true, res.result.nModified);
+    };
+    isUpdateOne ? collection.updateOne(query, update, options, cb) : collection.updateMany(query, update, options, cb);
+    process._tickCallback();
+}
+
+function dbCount(params, callback) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.count: Invalid params object.`);
+
+    const query = utils.safeObjectArgument(params.query);
+    const options = utils.safeObjectArgument(params.options);
+
+    collection.countDocuments(query, options, (err, count) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.count: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        }
+        utils.safeCallback(callback, true, count);
+    });
+    process._tickCallback();
+}
+
+function dbDelete(params, callback, isDeleteOne) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.delete: Invalid params object.`);
+
+    const query = utils.safeObjectArgument(params.query);
+    const options = utils.safeObjectArgument(params.options);
+
+    const cb = (err, res) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.delete: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        }
+        utils.safeCallback(callback, true, res.result.n);
+    };
+    isDeleteOne ? collection.deleteOne(query, options, cb) : collection.deleteMany(query, options, cb);
+    process._tickCallback();
+}
+
+/* Exports definitions */
+
+exports("isConnected", () => !!db);
 exports("collection", name => {
     collection = db.collection(name);
 });
 
-exports("find", (query, options, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
-
-    query = utils.safeObjectArgument(query);
-    options = utils.safeObjectArgument(options);
-
-    let cursor = collection.find(query, options);
-    if (options.limit) cursor = cursor.limit(options.limit);
-    cursor.toArray((err, documents) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.find: Error "${err.message}".`);
-        utils.safeCallback(callback, utils.exportDocuments(documents));
-    });
-    process._tickCallback();
+exports("insert", dbInsert);
+exports("insertOne", (params, callback) => {
+    if (checkParams(params)) {
+        params.documents = [params.document];
+        params.document = null;
+    }
+    return dbInsert(params, callback)
 });
 
-exports("count", (query, options, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
-
-    query = utils.safeObjectArgument(query);
-    options = utils.safeObjectArgument(options);
-
-    collection.count(query, options, (err, count) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.count: Error "${err.message}".`);
-        utils.safeCallback(callback, count);
-    });
-    process._tickCallback();
+exports("find", dbFind);
+exports("findOne", (params, callback) => {
+    if (checkParams(params)) params.limit = 1;
+    return dbFind(params, callback);
 });
 
-exports("insert", (documents, options, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
-    if (typeof documents == "object") documents = [documents];
-    if (!documents || !Array.isArray(documents))
-        return console.log(`[MongoDB][ERROR] exports.insert: Invalid 'documents' argument. Expected object or array of objects.`);
-
-    options = utils.safeObjectArgument(options);
-
-    collection.insertMany(documents, (err, result) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.insert: Error "${err.message}".`);
-        utils.safeCallback(callback, result.insertedCount);
-    });
-    process._tickCallback();
+exports("update", dbUpdate);
+exports("updateOne", (params, callback) => {
+    return dbUpdate(params, callback, true);
 });
 
-exports("updateOne", (filter, update, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
+exports("count", dbCount);
 
-    filter = utils.safeObjectArgument(filter);
-    update = utils.safeObjectArgument(update);
-
-    collection.updateOne(filter, update, (err, res) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.update: Error "${err.message}".`);
-        utils.safeCallback(callback, res.result.nModified);
-    });
-    process._tickCallback();
-});
-
-exports("updateMany", (filter, update, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
-
-    filter = utils.safeObjectArgument(filter);
-    update = utils.safeObjectArgument(update);
-
-    collection.updateMany(filter, update, (err, res) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.update: Error "${err.message}".`);
-        utils.safeCallback(callback, res.result.nModified);
-    });
-    process._tickCallback();
-});
-
-
-exports("remove", (filter, callback) => {
-    if (!db) return console.log(`[MongoDB][ERROR] Database is not connected.`);
-    if (!collection) return console.log(`[MongoDB][ERROR] Collection is not selected. Use exports.collection first.`);
-
-    filter = utils.safeObjectArgument(filter);
-
-    collection.remove(filter, (err, res) => {
-        if (err) return console.log(`[MongoDB][ERROR] exports.remove: Error "${err.message}".`);
-        utils.safeCallback(callback, res.result.n);
-    });
-    process._tickCallback();
+exports("delete", dbDelete);
+exports("deleteOne", (params, callback) => {
+    return dbDelete(params, callback, true);
 });
