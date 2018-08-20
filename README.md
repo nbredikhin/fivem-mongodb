@@ -1,6 +1,6 @@
 # FiveM MongoDB wrapper
 ## Description
-This resource is a simple MongoDB wrapper for [FiveM](https://fivem.net/). It's running on top of [MongoDB Node Driver](http://mongodb.github.io).
+This resource is a simple MongoDB wrapper for [FiveM](https://fivem.net/). It's running on top of [MongoDB Node Driver](https://mongodb.github.io/node-mongodb-native/).
 
 ## Installation
 
@@ -12,6 +12,7 @@ exec "database.cfg"
 start mongodb
 ```
 4. Change `mongodb_url` and `mongodb_database` in `database.cfg`.
+5. Execute `npm install` in `resources/mongodb` directory.
 
 ## Usage
 **WARNING: Resource is still in early development and API may change!**
