@@ -1,5 +1,6 @@
 local function printFiveUsers()
     local params = {
+        collection = "users",
         query = {},
         limit = 5,
         options = {
@@ -22,7 +23,7 @@ local function printFiveUsers()
 end
 
 local function printUser(id)
-    exports.mongodb:findOne({ query = { _id = id } }, function (success, result)
+    exports.mongodb:findOne({ collection="users", query = { _id = id } }, function (success, result)
         if not success then
             return
         end
@@ -38,9 +39,8 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
 
     local username = "User0"
 
-    exports.mongodb:collection("users")
     -- Find user by username
-    exports.mongodb:findOne({ query = { username = username } }, function (success, result)
+    exports.mongodb:findOne({ collection="users", query = { username = username } }, function (success, result)
         if not success then
             print("[MongoDB][Example] Error in findOne: "..tostring(result))
             return
@@ -49,11 +49,11 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
         if #result > 0 then
             print("[MongoDB][Example] User is already created")
             printUser(result[1]._id)
-            exports.mongodb:updateOne({ query = { _id = result[1]._id }, update = { ["$set"] = { first_name = "Bob" } } })
+            exports.mongodb:updateOne({ collection="users", query = { _id = result[1]._id }, update = { ["$set"] = { first_name = "Bob" } } })
             return
         end
         print("[MongoDB][Example] User does not exist. Creating...")
-        exports.mongodb:insertOne({ document = { username = username, password = "123" } }, function (success, result, insertedIds)
+        exports.mongodb:insertOne({ collection="users", document = { username = username, password = "123" } }, function (success, result, insertedIds)
             if not success then
                 print("[MongoDB][Example] Error in insertOne: "..tostring(result))
                 return
@@ -63,7 +63,7 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
         end)
     end)
 
-    exports.mongodb:count({}, function (success, result)
+    exports.mongodb:count({collection="users"}, function (success, result)
         if not success then
             print("[MongoDB][Example] Error in count: "..tostring(result))
             return
@@ -75,7 +75,7 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
                 table.insert(insertUsers, { username = "User"..i, password = "123456" })
             end
 
-            exports.mongodb:insert({ documents = insertUsers }, function (success, result)
+            exports.mongodb:insert({ collection="users", documents = insertUsers }, function (success, result)
                 if not success then
                     print("[MongoDB][Example] Failed to insert users: "..tostring(result))
                     return
