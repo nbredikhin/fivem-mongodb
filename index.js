@@ -1,18 +1,23 @@
 const mongodb = require("mongodb");
 const utils = require("./utils");
 
-const url = GetConvar("mongodb_url");
-const dbName = GetConvar("mongodb_database");
+const url = GetConvar("mongodb_url", "changeme");
+const dbName = GetConvar("mongodb_database", "changeme");
 
 let db;
 
-mongodb.MongoClient.connect(url, { useNewUrlParser: true },function (err, client) {
-    if (err) return print("Error: " + err.message);
-    db = client.db(dbName);
+if (url != "changeme" && dbName != "changeme") {
+    mongodb.MongoClient.connect(url, { useNewUrlParser: true }, function (err, client) {
+        if (err) return print("Error: " + err.message);
+        db = client.db(dbName);
 
-    console.log(`[MongoDB] Connected to database "${dbName}".`);
-    emit("onDatabaseConnect", dbName);
-});
+        console.log(`[MongoDB] Connected to database "${dbName}".`);
+        emit("onDatabaseConnect", dbName);
+    });
+} else {
+    if (url == "changeme") console.log(`[MongoDB][ERROR] Convar "mongodb_url" not set (see README)`);
+    if (dbName == "changeme") console.log(`[MongoDB][ERROR] Convar "mongodb_database" not set (see README)`);
+}
 
 function checkDatabaseReady() {
     if (!db) {

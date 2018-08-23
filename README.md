@@ -12,7 +12,7 @@ exec "database.cfg"
 start mongodb
 ```
 4. Change `mongodb_url` and `mongodb_database` in `database.cfg`.
-5. Execute `npm install` in `resources/mongodb` directory.
+5. Run `npm install` in `resources/mongodb` directory.
 
 ## Usage
 **WARNING: Resource is still in early development and API may change!**
