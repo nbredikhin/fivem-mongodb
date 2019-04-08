@@ -49,7 +49,7 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
         if #result > 0 then
             print("[MongoDB][Example] User is already created")
             printUser(result[1]._id)
-            exports.mongodb:updateOne({ collection="users", query = { _id = result[1]._id }, update = { ["$set"] = { first_name = "Bob" } } })
+            exports.mongodb:updateOne({ collection="users", query = { _id = result[1]._id }, update = { ["$set"] = { first_name = "Bob" , last_update = "day(" .. os.time() ..")"} } })
             return
         end
         print("[MongoDB][Example] User does not exist. Creating...")
