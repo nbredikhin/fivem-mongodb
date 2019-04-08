@@ -55,6 +55,22 @@ function dbInsert(params, callback) {
     if (!documents || !Array.isArray(documents))
         return console.log(`[MongoDB][ERROR] exports.insert: Invalid 'params.documents' value. Expected object or array of objects.`);
 
+    for(let i=0,l=documents.length; i<l;i++){
+        for(let k in documents[i]){
+            insertDocument = documents[i][k];
+            console.log(insertDocument)
+            if(typeof(insertDocument) == "string" && insertDocument.indexOf("date(") > -1){ // date format
+                let unixTime = insertDocument.substring(insertDocument.indexOf("(")+1, insertDocument.indexOf(")"))
+                try {
+                    unixTime = parseInt(unixTime) * 1000;
+                    documents[i][k] = new Date(unixTime)
+                } catch(err){
+                    console.log(`[MongoDB][WARNING] exports.insert: Error "date value is not number".`)
+                }
+            }
+        }
+    }
+
     const options = utils.safeObjectArgument(params.options);
 
     collection.insertMany(documents, options, (err, result) => {
