@@ -53,7 +53,7 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
             return
         end
         print("[MongoDB][Example] User does not exist. Creating...")
-        exports.mongodb:insertOne({ collection="users", document = { username = username, password = "123" } }, function (success, result, insertedIds)
+        exports.mongodb:insertOne({ collection="users", document = { username = username, password = "123", ["date_nested.register_date"] = "day(" .. os.time() ..")" } }, function (success, result, insertedIds)
             if not success then
                 print("[MongoDB][Example] Error in insertOne: "..tostring(result))
                 return
@@ -72,7 +72,7 @@ AddEventHandler("onDatabaseConnect", function (databaseName)
         if result < 10 then
             local insertUsers = {}
             for i = 1, 10 do
-                table.insert(insertUsers, { username = "User"..i, password = "123456" })
+                table.insert(insertUsers, { username = "User"..i, password = "123456" , created_date = "day(" .. os.time() ..")"})
             end
 
             exports.mongodb:insert({ collection="users", documents = insertUsers }, function (success, result)
