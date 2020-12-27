@@ -34,7 +34,6 @@ function safeCallback(cb, ...args) {
 module.exports = {
     exportDocument,
     exportDocuments,
-
     safeObjectArgument,
     safeCallback
 }

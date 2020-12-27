@@ -7,7 +7,7 @@ const dbName = GetConvar("mongodb_database", "changeme");
 let db;
 
 if (url != "changeme" && dbName != "changeme") {
-    mongodb.MongoClient.connect(url, { useNewUrlParser: true }, function (err, client) {
+    mongodb.MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
         if (err) return print("Error: " + err.message);
         db = client.db(dbName);
 
