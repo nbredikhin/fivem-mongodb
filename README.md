@@ -15,7 +15,6 @@ start mongodb
 5. Run `npm install` in `resources/mongodb` directory.
 
 ## Usage
-**WARNING: Resource is still in early development and API may change!**
 
 Every callback accepts `success<boolean>` as its first argument. If `success` is `false`, second argument contains error message.
 
@@ -61,7 +60,7 @@ Inserts a single document into MongoDB.
 * `params.limit<number>` - limit documents count
 * `callback(success<boolean>, documents<Array>)` - callback (optional)
 
-Performns a find query.
+Performs a find query.
 
 ## exports.mongodb.findOne(params, callback);
 * `params<Object>` - params object
