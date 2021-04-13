@@ -46,14 +46,14 @@ function getParamsCollection(params) {
  */
 function dbInsert(params, callback) {
     if (!checkDatabaseReady()) return;
-    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.insert: Invalid params object.`);
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.insert: Invalid params object. Expected object, got ${typeof params}`);
 
     let collection = getParamsCollection(params);
     if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
 
     let documents = params.documents;
     if (!documents || !Array.isArray(documents))
-        return console.log(`[MongoDB][ERROR] exports.insert: Invalid 'params.documents' value. Expected object or array of objects.`);
+        return console.log(`[MongoDB][ERROR] exports.insert: Invalid 'params.documents' value. Expected object or array of objects, got ${typeof documents}.`);
 
     const options = utils.safeObjectArgument(params.options);
 
@@ -84,7 +84,7 @@ function dbInsert(params, callback) {
  */
 function dbFind(params, callback) {
     if (!checkDatabaseReady()) return;
-    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.find: Invalid params object.`);
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.find: Invalid params object. Expected object, got ${typeof params}`);
 
     let collection = getParamsCollection(params);
     if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
@@ -114,7 +114,7 @@ function dbFind(params, callback) {
  */
 function dbUpdate(params, callback, isUpdateOne) {
     if (!checkDatabaseReady()) return;
-    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.update: Invalid params object.`);
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.update: Invalid params object. Expected object, got ${typeof params}`);
 
     let collection = getParamsCollection(params);
     if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
@@ -143,7 +143,7 @@ function dbUpdate(params, callback, isUpdateOne) {
  */
 function dbCount(params, callback) {
     if (!checkDatabaseReady()) return;
-    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.count: Invalid params object.`);
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.count: Invalid params object. Expected object, got ${typeof params}`);
 
     let collection = getParamsCollection(params);
     if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
@@ -170,7 +170,7 @@ function dbCount(params, callback) {
  */
 function dbDelete(params, callback, isDeleteOne) {
     if (!checkDatabaseReady()) return;
-    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.delete: Invalid params object.`);
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.delete: Invalid params object. Expected object, got ${typeof params}`);
 
     let collection = getParamsCollection(params);
     if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
