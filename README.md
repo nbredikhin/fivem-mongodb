@@ -91,6 +91,16 @@ Update multiple documents on MongoDB.
 
 Update a single document on MongoDB.
 
+## exports.mongodb.replaceOne(params, callback);
+* `params<Object>` - params object
+* `params.collection<string>` - collection name
+* `params.query<Object>` - filter query object
+* `params.replacement<Object>` - document object to replace with
+* `params.options<Object>` - optional settings object. See [collection.updateMany in docs](http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#replaceOne)
+* `callback(success<boolean>, updatedCount<number>)` - callback (optional)
+
+Replace a single document on MongoDB.
+
 ## exports.mongodb.count(params, callback);
 * `params<Object>` - params object
 * `params.collection<string>` - collection name

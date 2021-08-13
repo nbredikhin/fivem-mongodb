@@ -87,7 +87,7 @@ function dbFind(params, callback) {
     if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.find: Invalid params object.`);
 
     let collection = getParamsCollection(params);
-    if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
+    if (!collection) return console.log(`[MongoDB][ERROR] exports.find: Invalid collection "${params.collection}"`);
 
     const query = utils.safeObjectArgument(params.query);
     const options = utils.safeObjectArgument(params.options);
@@ -117,7 +117,7 @@ function dbUpdate(params, callback, isUpdateOne) {
     if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.update: Invalid params object.`);
 
     let collection = getParamsCollection(params);
-    if (!collection) return console.log(`[MongoDB][ERROR] exports.insert: Invalid collection "${params.collection}"`);
+    if (!collection) return console.log(`[MongoDB][ERROR] exports.update: Invalid collection "${params.collection}"`);
 
     query = utils.safeObjectArgument(params.query);
     update = utils.safeObjectArgument(params.update);
@@ -135,6 +135,35 @@ function dbUpdate(params, callback, isUpdateOne) {
     process._tickCallback();
 }
 
+/**
+ * MongoDB replace method
+ * @param {Object} params - Params object
+ * @param {Object} params.query - Filter query object.
+ * @param {Object} params.replacement - Document to replace with.
+ * @param {Object} params.options - Options passed to insert.
+ */
+function dbReplaceOne(params, callback) {
+    if (!checkDatabaseReady()) return;
+    if (!checkParams(params)) return console.log(`[MongoDB][ERROR] exports.replaceOne: Invalid params object.`);
+
+    let collection = getParamsCollection(params);
+    if (!collection) return console.log(`[MongoDB][ERROR] exports.replaceOne: Invalid collection "${params.collection}"`);
+
+    query = utils.safeObjectArgument(params.query);
+    replacement = utils.safeObjectArgument(params.replacement);
+    options = utils.safeObjectArgument(params.options);
+
+    const cb = (err, res) => {
+        if (err) {
+            console.log(`[MongoDB][ERROR] exports.replaceOne: Error "${err.message}".`);
+            utils.safeCallback(callback, false, err.message);
+            return;
+        }
+        utils.safeCallback(callback, true, res.result.nModified);
+    };
+    collection.replaceOne(query, replacement, options, cb);
+    process._tickCallback();
+}
 /**
  * MongoDB count method
  * @param {Object} params - Params object
@@ -213,6 +242,8 @@ exports("update", dbUpdate);
 exports("updateOne", (params, callback) => {
     return dbUpdate(params, callback, true);
 });
+
+exports("replaceOne", dbReplaceOne);
 
 exports("count", dbCount);
 
