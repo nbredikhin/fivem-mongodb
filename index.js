@@ -6,7 +6,7 @@ const dbName = GetConvar("mongodb_database", "changeme");
 
 let db;
 
-if (url != "changeme" && dbName != "changeme") {
+if (url == "changeme" && dbName == "changeme") {
     mongodb.MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, client) {
         if (err) return console.log("[MongoDB][ERROR] Failed to connect: " + err.message);
         db = client.db(dbName);
